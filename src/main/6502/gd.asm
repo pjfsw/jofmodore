@@ -60,7 +60,8 @@ init: {
 bgColor:
     .byte GD_SPI_WRITE | GD_REGISTER
     .byte GD_BG_COLOR
-    .byte %00011000
+    // g2g1g0b4b3b2b1b0   ar4r3r2r1r0g4g3
+    .byte %00010000
     .byte %00100001
 }
 
@@ -70,18 +71,7 @@ println: {
     stx SPI_DATA_PTR
     sty SPI_DATA_PTR+1
 
-    gd_select()
-    {
-        lda #GD_SPI_WRITE | GD_REGISTER
-        jsr spi.writeByte
-        lda #GD_SCROLL_Y
-        jsr spi.writeByte
-        lda CONSOLE_SCROLL
-        jsr spi.writeByte
-        lda CONSOLE_SCROLL+1
-        jsr spi.writeByte
-    } gd_deselect()
-
+    // Write text at current position
     gd_select()
     {
         lda CONSOLE_POSITION+1
@@ -91,15 +81,6 @@ println: {
         jsr spi.writeByte
 
         jsr spi.writeBytesUntilZero
-
-        // Clear rest of  line
-        sec
-        lda #50
-        sbc SPI_COUNT
-        sta SPI_COUNT
-        lda #' '
-        sta SPI_DATA_PTR
-        jsr spi.writeByteManyTimes
     } gd_deselect()
 
     clc
@@ -129,6 +110,35 @@ println: {
         sta CONSOLE_SCROLL+1
     }
 !:
+
+    gd_select()
+    {
+        lda CONSOLE_POSITION+1
+        ora #GD_SPI_WRITE
+        jsr spi.writeByte
+        lda CONSOLE_POSITION
+        jsr spi.writeByte
+
+        // Clear next  line
+        lda #50
+        sta SPI_COUNT
+        lda #' '
+        sta SPI_DATA_PTR
+        jsr spi.writeByteManyTimes
+    } gd_deselect()
+
+    gd_select()
+    {
+        lda #GD_SPI_WRITE | GD_REGISTER
+        jsr spi.writeByte
+        lda #GD_SCROLL_Y
+        jsr spi.writeByte
+        lda CONSOLE_SCROLL
+        jsr spi.writeByte
+        lda CONSOLE_SCROLL+1
+        jsr spi.writeByte
+    } gd_deselect()
+
     rts
 
 }
