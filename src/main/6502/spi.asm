@@ -1,19 +1,25 @@
 #importonce
 
+// -----------------------
+// 6522 SPI Implementation
+// -----------------------
+
 #import "memorymap.asm"
 #import "65c02.asm"
 
 .namespace spi {
+    * = * "SPI"
+
 // PA7:     MISO Read bit
 // PA6:     MOSI Write bit
 // PA1-PA5: DEVICE SELECT
 // PA0:     SCLK Serial Clock
 
-.label SPI_DDR = VIA1_DDRA
-.label SPI_PORT = VIA1_PORTA
-.label SPI_NO_DEVICE = %00111110
-.label SPI_DEVICE1 =   %00111100
-.label MOSI_MASK =     %01000000
+    .label SPI_DDR = VIA1_DDRA
+    .label SPI_PORT = VIA1_PORTA
+    .label SPI_NO_DEVICE = %00111110
+    .label SPI_DEVICE1 =   %00111100
+    .label MOSI_MASK =     %01000000
 
 init: {
     lda #$7f        // all outputs except pin 7 which is MISO
@@ -85,6 +91,36 @@ writeBytes: {
 !:
     rts
 }
+
+//
+// 16-bit Address to bytes ending with 0 in SPI_DATA_PTR
+// After call, SPI_COUNT contains length
+// X,Y,A are not preserved after call.
+//
+
+writeBytesUntilZero: {
+    ldx SPI_MOSI1
+    ldy SPI_MOSI0
+    stz(SPI_COUNT)
+
+!:  {
+        ldazp(SPI_DATA_PTR)
+        bne !+
+        rts
+
+    !:  {
+            writeAccumulator()
+            inc SPI_COUNT
+            inc SPI_DATA_PTR
+            bne !+
+            inc SPI_DATA_PTR+1
+        !:
+        }
+    }
+
+    jmp !-
+}
+
 
 //
 // 8-bit value to write in SPI_DATA_PTR

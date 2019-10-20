@@ -5,7 +5,6 @@
 .const SPI_COUNT = $0202
 .const CONSOLE_POSITION = $0203 // 2 bytes
 .const CONSOLE_SCROLL = $0205 // 2 bytes
-.const LINE_PAD = $0207
 
 .const SPI_DATA_PTR = $01
 
