@@ -2,6 +2,7 @@
 
 #import "spi.asm"
 #import "gd.asm"
+#import "sound.asm"
 
     * = * "BIOS"
 
@@ -11,17 +12,23 @@ start:
 
 
 !:
+    jsr beep
+
     ldx #<msg
     ldy #>msg
     jsr console.println
 
     jsr sleep
 
+    jsr beep
+
     ldx #<msg2
     ldy #>msg2
     jsr console.println
 
     jsr sleep
+
+    jsr beep
 
     ldx #<msg3
     ldy #>msg3
@@ -30,6 +37,22 @@ start:
     jsr sleep
 
     jmp !-
+
+beep:
+    ldy #1
+!:  {
+        lda beeps,y
+        jsr sound.beep
+
+        ldx #60
+    !:
+        dex
+        bne !-
+    }
+    dey
+    bpl !-
+    jsr sound.quiet
+    rts
 
 sleep:
     ldy #63
@@ -43,6 +66,8 @@ sleep:
     bne !-
     rts
 
+beeps:
+    .byte 45,90
 msg:
     .text "WELCOME TO JOFMODORE V0.01"
     .byte 0

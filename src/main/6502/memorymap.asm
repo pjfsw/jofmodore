@@ -12,3 +12,6 @@
 .const VIA1_DDRB = $a002
 .const VIA1_PORTA = $a001
 .const VIA1_PORTB = $a000
+.const VIA1_T1L = $a004
+.const VIA1_T1H = $a005
+.const VIA1_ACR = $a00b
