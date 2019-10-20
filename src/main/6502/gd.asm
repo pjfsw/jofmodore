@@ -43,26 +43,7 @@ init: {
         jsr spi.writeByte
     } gd_deselect()
 
-    // Set bgcolor
-    gd_select()
-    {
-        lda #<bgColor
-        sta SPI_DATA_PTR
-        lda #>bgColor
-        sta SPI_DATA_PTR+1
-        lda #4
-        sta SPI_COUNT
-        jsr spi.writeBytes
-    } gd_deselect()
-
     rts
-
-bgColor:
-    .byte GD_SPI_WRITE | GD_REGISTER
-    .byte GD_BG_COLOR
-    // g2g1g0b4b3b2b1b0   ar4r3r2r1r0g4g3
-    .byte %00010000
-    .byte %00100001
 }
 
 // x/y high low msg
