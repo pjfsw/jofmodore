@@ -25,8 +25,6 @@ init: {
     lda #spi.SPI_NO_DEVICE | spi.MOSI_MASK
     sta SPI_PORT
 
-    jsr wait
-
     ldx #80
 !:
     inc SPI_PORT
@@ -41,32 +39,22 @@ init: {
 }
 
 wait: {
-    phx()
     phy()
 
-    ldx #3
-!:  {
-        ldy #0
-    !:
-        dey
-        bne !-
-    }
-    dex
+    ldy #0
+!:
+    dey
     bne !-
 
     ply()
-    plx()
     rts
 
 }
 .macro CARD_noArgument() {
     lda #0
     SPI_writeAccumulator()
-    lda #0
     SPI_writeAccumulator()
-    lda #0
     SPI_writeAccumulator()
-    lda #0
     SPI_writeAccumulator()
 }
 
@@ -98,11 +86,12 @@ sendCommand0: {
 
     CARD_byte(CMD0)
     CARD_noArgument()
-    CARD_byte($95)
+    CARD_byte($95)   // CRC
 
 !:
     jsr spi.readByteSendFF
-    bpl !+        // bit 7 not set, exit
+    cmp #$80
+    bcc !+        // bit 7 not set, exit
 
     dec SPI_COUNT // Retry a few times, otherwise return whatever status
     beq !+
