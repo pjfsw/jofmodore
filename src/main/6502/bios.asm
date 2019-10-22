@@ -15,7 +15,6 @@
 start:
     jsr spi.init
     jsr card.init
-    sta CARD_R1
 
     jsr beep
     jsr console.init
@@ -39,6 +38,22 @@ start:
     jsr console.println
 
 !:
+    ldx #<cardInitMsg
+    ldy #>cardInitMsg
+    jsr console.println
+
+    jsr card.sendCommand0
+    sta CARD_R1
+    jsr printCardStatus
+    jsr card.sendCommand // Send next command in list and print status
+    sta CARD_R1
+    jsr printCardStatus
+
+    jsr sleep
+
+    jmp !-
+
+printCardStatus:
     lda CARD_R1
     lsr(4)
     tay
@@ -52,13 +67,7 @@ start:
     ldx #<cardStatusMsg
     ldy #>cardStatusMsg
     jsr console.println
-
-    jsr sleep
-
-    jsr card.sendCommand0
-    sta CARD_R1
-
-    jmp !-
+    rts
 
 beep:
     ldy #1
@@ -93,6 +102,10 @@ beeps:
 msg:
     .text "WELCOME TO JOFMODORE V0.01"
     .byte 0
+cardInitMsg:
+    .text "INITIALIZING SDC"
+    .byte 0
+
 cardStatusMsg:
     .text "SDC STATUS: "
 cardStatusHigh:

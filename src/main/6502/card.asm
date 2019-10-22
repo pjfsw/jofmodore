@@ -15,7 +15,8 @@
     * = * "SD Card"
 
     .label CARD_DEVICE = spi.SPI_DEVICE2
-    .label CMD0 = %01000000
+    .label CMD0 = $40
+    .label CMD8 = $48
 
     .label CARD_RETRY_COUNT = 10
 
@@ -33,9 +34,7 @@ init: {
     bne !-
 
     jsr wait
-
-    jmp sendCommand0
-
+    rts
 }
 
 wait: {
@@ -72,11 +71,18 @@ wait: {
     CARD_byte($ff)
 }
 
-
 sendCommand0: {
-    lda #CARD_RETRY_COUNT
-    sta SPI_COUNT
+    lda #<command0
+    sta SPI_DATA_PTR
+    lda #>command0
+    sta SPI_DATA_PTR+1
+    jmp sendCommand
+}
 
+//
+// SPI_DATA_PTR contains 5 byte sequence
+// SPI_COUNT will be modified
+sendCommand: {
     SPI_setupIndexFromDevice(CARD_DEVICE)
     stx SPI_PORT
 !:
@@ -84,10 +90,23 @@ sendCommand0: {
     cmp #$FF
     bne !-
 
-    CARD_byte(CMD0)
-    CARD_noArgument()
-    CARD_byte($95)   // CRC
+    // Send 6 bytes command
+    lda #6
+    sta SPI_COUNT
+!:  {
+        ldazp(SPI_DATA_PTR)
+        SPI_writeAccumulator()
+        inc16bit(SPI_DATA_PTR)
+    !:
+    }
+    dec SPI_COUNT
+    beq !+
+    jmp !-
 
+    // Get response size
+!:
+    lda #CARD_RETRY_COUNT
+    sta SPI_COUNT
 !:
     jsr spi.readByteSendFF
     cmp #$80
@@ -104,5 +123,12 @@ sendCommand0: {
     pla
     rts
 }
+
+// Reset SDC
+command0:
+.byte CMD0, $00, $00, $00, $00, $95
+// Check version
+command8:
+.byte CMD8, $00, $00, $01, $AA, $87
 
 }

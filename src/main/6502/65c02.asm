@@ -40,3 +40,10 @@
 .macro inca() {
     .byte $1a
 }
+
+.macro inc16bit(addr) {
+    inc addr
+    bne !+
+    inc addr+1
+!:
+}
