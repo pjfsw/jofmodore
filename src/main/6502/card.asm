@@ -21,13 +21,13 @@
 
 // Return R1 sesponse
 init: {
-    // Send 75 clock pulses with no chip select and MOSI=1
+    // Send >=75 clock pulses with no chip select and MOSI=1
     lda #spi.SPI_NO_DEVICE | spi.MOSI_MASK
     sta SPI_PORT
 
     jsr wait
 
-    ldx #10
+    ldx #80
 !:
     inc SPI_PORT
     dec SPI_PORT
