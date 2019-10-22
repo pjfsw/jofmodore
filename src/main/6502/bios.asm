@@ -1,40 +1,62 @@
-    * = $fb00 "Implementation"
+    * = $f700 "Implementation"
 
 #import "spi.asm"
+#import "card.asm"
 #import "gd.asm"
 #import "sound.asm"
 
     * = * "BIOS"
 
+.macro lsr(n) {
+    .for(var i = 0;i < n;i++) {
+        lsr
+    }
+}
 start:
     jsr spi.init
-    jsr console.init
+    jsr card.init
+    sta CARD_R1
 
-
-!:
     jsr beep
+    jsr console.init
 
     ldx #<msg
     ldy #>msg
     jsr console.println
 
-    jsr sleep
+    lda CONSOLE_ID
+    lsr(4)
+    tay
+    lda hexDigit,y
+    sta graphicsIdHigh
+    lda CONSOLE_ID
+    and #$0f
+    tay
+    lda hexDigit,y
+    sta graphicsIdLow
+    ldx #<graphicsMsg
+    ldy #>graphicsMsg
+    jsr console.println
 
-    jsr beep
-
-    ldx #<msg2
-    ldy #>msg2
+!:
+    lda CARD_R1
+    lsr(4)
+    tay
+    lda hexDigit,y
+    sta cardStatusHigh
+    lda CARD_R1
+    and #$0f
+    tay
+    lda hexDigit,y
+    sta cardStatusLow
+    ldx #<cardStatusMsg
+    ldy #>cardStatusMsg
     jsr console.println
 
     jsr sleep
 
-    jsr beep
-
-    ldx #<msg3
-    ldy #>msg3
-    jsr console.println
-
-    jsr sleep
+    jsr card.sendCommand0
+    sta CARD_R1
 
     jmp !-
 
@@ -44,7 +66,7 @@ beep:
         lda beeps,y
         jsr sound.beep
 
-        ldx #60
+        ldx #20
     !:
         dex
         bne !-
@@ -55,7 +77,7 @@ beep:
     rts
 
 sleep:
-    ldy #63
+    ldy #31
 !:  {
         ldx #255
     !:
@@ -71,12 +93,22 @@ beeps:
 msg:
     .text "WELCOME TO JOFMODORE V0.01"
     .byte 0
-msg2:
-    .text "THERE IS NO BASIC PRESENT AND UNKNOWN BYTES FREE"
+cardStatusMsg:
+    .text "SDC STATUS: "
+cardStatusHigh:
     .byte 0
-msg3:
-    .text "ALL YOUR BASE ARE BELONG TO US"
+cardStatusLow:
     .byte 0
+    .byte 0
+graphicsMsg:
+    .text "GFX ID: "
+graphicsIdHigh:
+    .byte 0
+graphicsIdLow:
+    .byte 0
+    .byte 0
+hexDigit:
+    .byte '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
 
     * = $fffc "6502 vectors"
     .byte <start, >start

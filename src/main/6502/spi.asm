@@ -15,17 +15,16 @@
 // PA1-PA5: DEVICE SELECT
 // PA0:     SCLK Serial Clock
 
-    .label SPI_DDR = VIA1_DDRA
-    .label SPI_PORT = VIA1_PORTA
     .label SPI_NO_DEVICE = %00111110
     .label SPI_DEVICE1 =   %00111100
+    .label SPI_DEVICE2 =   %00111010
     .label MOSI_MASK =     %01000000
 
 init: {
+    lda #SPI_NO_DEVICE | MOSI_MASK
+    sta SPI_PORT
     lda #$7f        // all outputs except pin 7 which is MISO
     sta SPI_DDR
-    lda #SPI_NO_DEVICE
-    sta SPI_PORT
     rts
 }
 
@@ -33,15 +32,25 @@ init: {
 selectDevice: {
     lda deviceSelectTable,x
     sta SPI_PORT
-    sta SPI_MOSI0
+    sta SPI_MOSI_L
     ora #MOSI_MASK
-    sta SPI_MOSI1
+    sta SPI_MOSI_H
     rts
 }
 
 
-// A,X, Y must be initialized
-.macro writeAccumulator() {
+// Load index registers with MOSI values for device
+.macro @SPI_setupIndexFromDevice(device) {
+    ldy #device
+    ldx #device | MOSI_MASK
+}
+
+
+// A = Value to be written
+// Y = MOSI=0 mask
+// X = MOSI=1 mask
+// To retrieve data, call rol
+.macro @SPI_writeAccumulator() {
     .for (var i = 0; i < 8; i++) {
         sty SPI_PORT    // default MOSI = 0
         rol             // shift MSB into carry
@@ -57,10 +66,10 @@ selectDevice: {
 // Device must be previously selected
 // Byte in A
 writeByte: {
-    ldx SPI_MOSI1
-    ldy SPI_MOSI0
+    ldx SPI_MOSI_H
+    ldy SPI_MOSI_L
 
-    writeAccumulator()
+    SPI_writeAccumulator()
 
     rts
 }
@@ -71,12 +80,12 @@ writeByte: {
 // X,Y,A are not preserved after call.
 //
 writeBytes: {
-    ldx SPI_MOSI1
-    ldy SPI_MOSI0
+    ldx SPI_MOSI_H
+    ldy SPI_MOSI_L
 !:
     ldazp(SPI_DATA_PTR)
 
-    writeAccumulator()
+    SPI_writeAccumulator()
 
     dec SPI_COUNT
     beq !+
@@ -99,8 +108,8 @@ writeBytes: {
 //
 
 writeBytesUntilZero: {
-    ldx SPI_MOSI1
-    ldy SPI_MOSI0
+    ldx SPI_MOSI_H
+    ldy SPI_MOSI_L
     stz(SPI_COUNT)
 
 !:  {
@@ -109,7 +118,7 @@ writeBytesUntilZero: {
         rts
 
     !:  {
-            writeAccumulator()
+            SPI_writeAccumulator()
             inc SPI_COUNT
             inc SPI_DATA_PTR
             bne !+
@@ -128,13 +137,13 @@ writeBytesUntilZero: {
 // X,Y,A are not preserved after call.
 //
 writeByteManyTimes: {
-    ldx SPI_MOSI1
-    ldy SPI_MOSI0
+    ldx SPI_MOSI_H
+    ldy SPI_MOSI_L
 
 !:
     lda SPI_DATA_PTR
 
-    writeAccumulator()
+    SPI_writeAccumulator()
 
     dec SPI_COUNT
     beq !+
@@ -143,6 +152,10 @@ writeByteManyTimes: {
     rts
 
 }
+
+readByteSendFF:
+    stx SPI_PORT
+    // Transitions into readbyte
 
 // Read a byte from SPI
 // Device must be previously selected
@@ -164,7 +177,7 @@ readByte: {
 }
 
 deviceSelectTable:
-    .byte SPI_NO_DEVICE, SPI_DEVICE1
+    .byte SPI_NO_DEVICE, SPI_DEVICE1, SPI_DEVICE2
 
 
 } // namespac

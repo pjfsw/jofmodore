@@ -24,6 +24,16 @@
     * = * "Gameduino"
 
 init: {
+    gd_select()
+    {
+        lda #GD_REGISTER
+        jsr spi.writeByte
+        lda #0
+        jsr spi.writeByte
+        jsr spi.readByte
+        sta CONSOLE_ID
+    } gd_deselect()
+
     lda #<(37*64)
     sta CONSOLE_POSITION
     lda #>(37*64)

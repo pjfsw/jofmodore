@@ -17,3 +17,26 @@
     .byte >dest
 }
 
+.macro phx() {
+    .byte $da
+}
+
+.macro phy() {
+    .byte $5a
+}
+
+.macro plx() {
+    .byte $fa
+}
+
+.macro ply() {
+    .byte $7a
+}
+
+.macro deca() {
+    .byte $3a
+}
+
+.macro inca() {
+    .byte $1a
+}
