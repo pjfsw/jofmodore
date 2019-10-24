@@ -1,4 +1,3 @@
-#define MAC_OS_X_VERSION_MIN_REQUIRED 1770
 #include <stdio.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
