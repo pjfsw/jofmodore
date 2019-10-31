@@ -10,6 +10,12 @@
     .byte src
 }
 
+// STA (zp)
+.macro stazp(dest) {
+    .byte $92
+    .byte dest
+}
+
 // STZ absolute
 .macro stz(dest) {
     .byte $9c
