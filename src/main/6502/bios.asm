@@ -40,8 +40,28 @@ start:
     lda CARD_R1
     bne !-
 
+    jsr card.readBootsector
+    jsr printCardStatus
+    lda CARD_R1
+    cmp #$FE
+    bne !+
+
+    jsr printBootInfo
+
 !:
     jmp !-
+
+printBootInfo:
+    ldx #0
+!:
+    lda CARD_BUFFER+3,x
+    sta bootInfoData,x
+    inx
+    cpx #bootInfoDataEnd-bootInfoData
+    bne !-
+    ldx #<bootInfo
+    ldy #>bootInfo
+    jmp console.println
 
 printGraphicsId: {
     lda CONSOLE_ID
@@ -56,11 +76,10 @@ printGraphicsId: {
     sta graphicsIdLow
     ldx #<graphicsMsg
     ldy #>graphicsMsg
-    jsr console.println
-    rts
+    jmp console.println
 }
 
-printCardStatus:
+printCardStatus: {
     .for (var i = 0; i < 2; i++) {
         lda CARD_CMD + i
         lsr(4)
@@ -76,10 +95,10 @@ printCardStatus:
 
     ldx #<cardStatusMsg
     ldy #>cardStatusMsg
-    jsr console.println
-    rts
+    jmp console.println
+}
 
-beep:
+beep: {
     ldy #1
 !:  {
         lda beeps,y
@@ -92,8 +111,8 @@ beep:
     }
     dey
     bpl !-
-    jsr sound.quiet
-    rts
+    jmp sound.quiet
+}
 
 sleep:
     ldy #31
@@ -115,6 +134,14 @@ msg:
 cardInitMsg:
     .text "INITIALIZING SDC"
     .byte 0
+
+bootInfo:
+    .text "BOOT SECTOR '"
+bootInfoData:
+    .fill 20,0
+bootInfoDataEnd:
+    .text "'"
+    .byte 0,0
 
 cardStatusMsg:
     .text "SDC STATUS: "

@@ -80,7 +80,10 @@ sendCommand0: {
     sta SPI_DATA_PTR
     lda #>command0
     sta SPI_DATA_PTR+1
-    jmp sendCommand
+    jsr sendCommand
+    CARD_deselect()
+    CARD_dummybyte()
+    rts
 }
 
 sendCommand8: {
@@ -88,7 +91,11 @@ sendCommand8: {
     sta SPI_DATA_PTR
     lda #>command8
     sta SPI_DATA_PTR+1
-    jmp sendCommand
+    jsr sendCommand
+    CARD_deselect()
+    CARD_dummybyte()
+
+    rts
 }
 
 sendAppCommand41: {
@@ -101,7 +108,9 @@ sendAppCommand41: {
     sta SPI_DATA_PTR
     lda #>appCommand41
     sta SPI_DATA_PTR+1
-    jmp sendCommand
+    jsr sendCommand
+    CARD_deselect()
+    rts
 }
 
 
@@ -152,30 +161,32 @@ sendCommand: {
 !:
     // Store response
     sta CARD_R1
-    CARD_deselect()
-    CARD_dummybyte()
     rts
 }
 
 // Read boot sector of disk
-readBlock0: {
+readBootsector: {
     lda #<command17
     sta SPI_DATA_PTR
     lda #>command17
     sta SPI_DATA_PTR+1
     jsr sendCommand
+    cmp #$0
     beq !+
+    sta CARD_R1
     // Initialization error, cannot read
     rts
 !:
+    lda #$FF
+    sta CARD_CMD
+
     SPI_setupIndexFromDevice(CARD_DEVICE)
     stx SPI_PORT
 
-    lda #CARD_RETRY_COUNT
-    sta SPI_COUNT
 !:
     jsr spi.readByteSendFF
 
+    sta CARD_R1
     cmp #READ_DATA_TOKEN
     beq !+
     cmp #$20
@@ -183,6 +194,9 @@ readBlock0: {
     // Data token error
     rts
 !:
+    lda #$FE
+    sta CARD_CMD
+
     // Begin data transfer
     lda #<CARD_BUFFER
     sta SPI_DATA_PTR
@@ -196,8 +210,10 @@ readBlock0: {
         jsr spi.readBytesSendFF
     }
 
-    SPI_setupIndexFromDevice(CARD_DEVICE)
-    jsr spi.readBytesSendFF // Read CRC
+    jsr spi.readByteSendFF // Read CRC
+
+    CARD_deselect()
+    CARD_dummybyte()
 
     rts
 }

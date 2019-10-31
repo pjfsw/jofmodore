@@ -56,8 +56,7 @@ init: {
     rts
 }
 
-// x/y high low msg
-// a len
+// x/y high low msg, null terminated
 println: {
     stx SPI_DATA_PTR
     sty SPI_DATA_PTR+1

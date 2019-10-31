@@ -15,6 +15,11 @@ The following web resources have been most helpful:
 ### SDC information
 
 http://chlazza.nfshost.com/sdcardinfo.html
+
 http://elm-chan.org/docs/mmc/mmc_e.html
+
 https://stackoverflow.com/questions/8080718/sdhc-microsd-card-and-spi-initialization
+
 https://openlabpro.com/guide/interfacing-microcontrollers-with-sd-card/
+
+[FAT-16 information](https://www.analog.com/media/en/technical-documentation/application-notes/ee_329_rev1.pdf)
