@@ -181,11 +181,11 @@ readBootsector: {
     sta CARD_CMD
 
     SPI_setupIndexFromDevice(CARD_DEVICE)
-    stx SPI_PORT
 
 !:
     jsr spi.readByteSendFF
-
+    cmp #$FF
+    beq !-
     sta CARD_R1
     cmp #READ_DATA_TOKEN
     beq !+
@@ -203,12 +203,16 @@ readBootsector: {
     lda #>CARD_BUFFER
     sta SPI_DATA_PTR+1
 
-    SPI_setupIndexFromDevice(CARD_DEVICE)
+    stz(SPI_COUNT) // 256 bytes
 
-    .for (var i = 0; i < 2; i++) {
-        stz(SPI_COUNT) // 256 bytes
-        jsr spi.readBytesSendFF
-    }
+    SPI_setupIndexFromDevice(CARD_DEVICE)
+    jsr spi.readBytesSendFF
+
+    ldy #0
+!:  // Just throw away the next 256 bytes coz we're out of RAM :(
+    jsr spi.readByteSendFF
+    dey
+    bne !-
 
     jsr spi.readByteSendFF // Read CRC
 

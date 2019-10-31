@@ -40,6 +40,14 @@ start:
     lda CARD_R1
     bne !-
 
+    ldx #0
+    lda #'X'
+!:
+    sta CARD_BUFFER,x
+    dex
+    bne !-
+
+
     jsr card.readBootsector
     jsr printCardStatus
     lda CARD_R1
@@ -52,16 +60,20 @@ start:
     jmp !-
 
 printBootInfo:
-    ldx #0
-!:
-    lda CARD_BUFFER+3,x
-    sta bootInfoData,x
-    inx
-    cpx #bootInfoDataEnd-bootInfoData
-    bne !-
-    ldx #<bootInfo
-    ldy #>bootInfo
-    jmp console.println
+    .for (var i = 0; i < 5; i++) {
+        ldx #bootInfoDataEnd-bootInfoData
+    !:
+        lda CARD_BUFFER+i*(bootInfoDataEnd-bootInfoData),x
+        and #%11011111
+        ora #1
+        sta bootInfoData,x
+        dex
+        bne !-
+        ldx #<bootInfo
+        ldy #>bootInfo
+        jsr console.println
+    }
+    rts
 
 printGraphicsId: {
     lda CONSOLE_ID
@@ -136,11 +148,9 @@ cardInitMsg:
     .byte 0
 
 bootInfo:
-    .text "BOOT SECTOR '"
 bootInfoData:
-    .fill 20,0
+    .fill 50,' '
 bootInfoDataEnd:
-    .text "'"
     .byte 0,0
 
 cardStatusMsg:
