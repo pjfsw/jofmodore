@@ -23,6 +23,26 @@ start:
     ldy #>msg
     jsr console.println
 
+    jsr printGraphicsId
+
+    ldx #<cardInitMsg
+    ldy #>cardInitMsg
+    jsr console.println
+
+    jsr card.sendCommand0
+    jsr printCardStatus
+    jsr card.sendCommand8 // Send next command in list and print status
+    jsr printCardStatus
+!:
+    jsr card.sendCommand1
+    jsr printCardStatus
+    lda CARD_R1
+    bne !-
+
+!:
+    jmp !-
+
+printGraphicsId: {
     lda CONSOLE_ID
     lsr(4)
     tay
@@ -36,34 +56,23 @@ start:
     ldx #<graphicsMsg
     ldy #>graphicsMsg
     jsr console.println
-
-!:
-    ldx #<cardInitMsg
-    ldy #>cardInitMsg
-    jsr console.println
-
-    jsr card.sendCommand0
-    sta CARD_R1
-    jsr printCardStatus
-    jsr card.sendCommand // Send next command in list and print status
-    sta CARD_R1
-    jsr printCardStatus
-
-    jsr sleep
-
-    jmp !-
+    rts
+}
 
 printCardStatus:
-    lda CARD_R1
-    lsr(4)
-    tay
-    lda hexDigit,y
-    sta cardStatusHigh
-    lda CARD_R1
-    and #$0f
-    tay
-    lda hexDigit,y
-    sta cardStatusLow
+    .for (var i = 0; i < 2; i++) {
+        lda CARD_CMD + i
+        lsr(4)
+        tay
+        lda hexDigit,y
+        sta cardStatus + i * 2
+        lda CARD_CMD + i
+        and #$0f
+        tay
+        lda hexDigit,y
+        sta cardStatus + i * 2 + 1
+    }
+
     ldx #<cardStatusMsg
     ldy #>cardStatusMsg
     jsr console.println
@@ -108,10 +117,8 @@ cardInitMsg:
 
 cardStatusMsg:
     .text "SDC STATUS: "
-cardStatusHigh:
-    .byte 0
-cardStatusLow:
-    .byte 0
+cardStatus:
+    .text "    "
     .byte 0
 graphicsMsg:
     .text "GFX ID: "

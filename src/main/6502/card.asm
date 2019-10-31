@@ -16,6 +16,7 @@
 
     .label CARD_DEVICE = spi.SPI_DEVICE2
     .label CMD0 = $40 | 0
+    .label CMD1 = $40 | 1
     .label CMD8 = $40 | 8
     .label CMD17 = $40 | 17
 
@@ -55,14 +56,6 @@ init: {
     rts
 }
 
-.macro CARD_noArgument() {
-    lda #0
-    SPI_writeAccumulator()
-    SPI_writeAccumulator()
-    SPI_writeAccumulator()
-    SPI_writeAccumulator()
-}
-
 .macro CARD_byte(byte) {
     lda #byte
     SPI_writeAccumulator()
@@ -88,6 +81,22 @@ sendCommand0: {
     jmp sendCommand
 }
 
+sendCommand8: {
+    lda #<command8
+    sta SPI_DATA_PTR
+    lda #>command8
+    sta SPI_DATA_PTR+1
+    jmp sendCommand
+}
+
+sendCommand1: {
+    lda #<command1
+    sta SPI_DATA_PTR
+    lda #>command1
+    sta SPI_DATA_PTR+1
+    jmp sendCommand
+}
+
 //
 // Send a command using 6 byte sequence stored at the
 // address pointed to by SPI_DATA_PTR
@@ -95,6 +104,10 @@ sendCommand0: {
 // The value SPI_COUNT will be modified
 //
 sendCommand: {
+    // Store the command currently being sent
+    ldazp(SPI_DATA_PTR)
+    sta CARD_CMD
+
     SPI_setupIndexFromDevice(CARD_DEVICE)
     stx SPI_PORT
 !:
@@ -129,10 +142,10 @@ sendCommand: {
     jmp !-
 
 !:
-    pha
+    // Store response
+    sta CARD_R1
     CARD_deselect()
     CARD_dummybyte()
-    pla
     rts
 }
 
@@ -188,6 +201,10 @@ command0:
 // Check version
 command8:
 .byte CMD8, $00, $00, $01, $AA, $87
+
+// INitialization
+command1:
+.byte CMD1, $00, $00, $00, $00, $00
 
 // Read single block
 command17:
