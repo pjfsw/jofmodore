@@ -16,7 +16,6 @@ start:
     jsr spi.init
     jsr card.init
 
-    jsr beep
     jsr console.init
 
     ldx #<msg
@@ -34,6 +33,8 @@ start:
     jsr card.sendCommand8 // Send next command in list and print status
     jsr printCardStatus
 !:
+    jsr beep
+
     jsr card.sendCommand1
     jsr printCardStatus
     lda CARD_R1

@@ -53,16 +53,6 @@ void setup() {
   ADDR_L_DIR = DIR_INPUT;
   ADDR_H_DIR = DIR_INPUT;
 
-/*
-  rom[ROM_SIZE-9] = 0xea;
-  rom[ROM_SIZE-8] = 0xea;
-  rom[ROM_SIZE-7] = 0xea;
-  rom[ROM_SIZE-6] = 0xea;
-  rom[ROM_SIZE-5] = 0x4c;
-  rom[ROM_SIZE-4] = 0xF7;
-  rom[ROM_SIZE-3] = 0xFF;
-  */
-
    //ef ff a9 7f 8d 01 a0 a9 7f 8d 03 a0 4c f9 ff ef 
    rom[ROM_SIZE-17] = 0xa9;
    rom[ROM_SIZE-16] = 0x7f;
@@ -79,17 +69,17 @@ void setup() {
    rom[ROM_SIZE -5] = 0xff;   
    rom[ROM_SIZE- 4] = 0xef;
    rom[ROM_SIZE- 3] = 0xff;
+}
 
-  
+void startTimer() {
   TCCR1A = 0;
   TCCR1B = 0;
   TCNT1 = 0;
   OCR1A = 2; //15624 / 8192;
   
   TCCR1B |= (1 << WGM12);
-  TCCR1B |= (1 << CS12);// | (1 << CS10);
+  TCCR1B |= (1 << CS11)  ; // WORKING
   TIMSK1 |= (1 << OCIE1A);
-  
 }
 
 void resetClockSequence() {
@@ -115,13 +105,6 @@ void normalClockSequence() {
     if (digitalRead(RWB)) { // READ
       DATA_DIR = DIR_OUTPUT;
       DATAOUT = getByte(addr);
-      //digitalWrite(DEBUGPIN, pinAddr);
-      /*if (addr >= 0 && addr < RAM_SIZE) {
-        DATA = ram[addr];
-      } else if (addr >= ROM_START && addr <= 0xFFFF) {
-        DATA = rom[addr-ROM_START];
-      }*/
-  
     } else { // WRITE
      setByte(addr, DATAIN);
     }
@@ -236,6 +219,7 @@ void loop() {
     Serial.println("Reset triggered");
   } else if (command == '1') {
     resetTimer = RESET_LENGTH;
+    startTimer();
     Serial.println("Reset released");
   } else if (parameters == 1) {
     Serial.print("Unknown command ");
