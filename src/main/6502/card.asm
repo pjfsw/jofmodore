@@ -16,9 +16,11 @@
 
     .label CARD_DEVICE = spi.SPI_DEVICE2
     .label CMD0 = $40 | 0
-    .label CMD1 = $40 | 1
     .label CMD8 = $40 | 8
     .label CMD17 = $40 | 17
+    .label CMD55 = $40 | 55
+
+    .label APP_CMD41 = $40 | 41
 
     .label CARD_RETRY_COUNT = 10
 
@@ -89,13 +91,19 @@ sendCommand8: {
     jmp sendCommand
 }
 
-sendCommand1: {
-    lda #<command1
+sendAppCommand41: {
+    lda #<command55
     sta SPI_DATA_PTR
-    lda #>command1
+    lda #>command55
+    sta SPI_DATA_PTR+1
+    jsr sendCommand
+    lda #<appCommand41
+    sta SPI_DATA_PTR
+    lda #>appCommand41
     sta SPI_DATA_PTR+1
     jmp sendCommand
 }
+
 
 //
 // Send a command using 6 byte sequence stored at the
@@ -196,18 +204,24 @@ readBlock0: {
 
 // Reset SDC
 command0:
-.byte CMD0, $00, $00, $00, $00, $95
+    .byte CMD0, $00, $00, $00, $00, $95
 
 // Check version
 command8:
-.byte CMD8, $00, $00, $01, $AA, $87
-
-// INitialization
-command1:
-.byte CMD1, $00, $00, $00, $00, $00
+    .byte CMD8, $00, $00, $01, $AA, $87
 
 // Read single block
 command17:
-.byte CMD17, $00, $00, $00, $00, $00
+    .byte CMD17, $00, $00, $00, $00, $00
 
+// Send APP Command initializer
+command55:
+    .byte CMD55, $00, $00, $00, $00, $00
+
+//
+// Application Commands - a CMD55 should precede
+//
+// Initialize High Capactity card, bit 30 = HC
+appCommand41:
+    .byte APP_CMD41, $40, $00, $00, $00, $00
 }

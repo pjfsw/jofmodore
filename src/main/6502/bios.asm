@@ -35,7 +35,7 @@ start:
 !:
     jsr beep
 
-    jsr card.sendCommand1
+    jsr card.sendAppCommand41
     jsr printCardStatus
     lda CARD_R1
     bne !-
