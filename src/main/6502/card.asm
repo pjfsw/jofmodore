@@ -15,12 +15,20 @@
     * = * "SD Card"
 
     .label CARD_DEVICE = spi.SPI_DEVICE2
-    .label CMD0 = $40
-    .label CMD8 = $48
+    .label CMD0 = $40 | 0
+    .label CMD8 = $40 | 8
+    .label CMD17 = $40 | 17
 
     .label CARD_RETRY_COUNT = 10
 
-// Return R1 sesponse
+    .label READ_DATA_TOKEN = $FE
+
+//
+// Initialize card reader.
+//
+// Should be called before any other SPI operation due to the fact that the
+// SDC is initialized based on clock pulses regardless of chip select
+//
 init: {
     // Send >=75 clock pulses with no chip select and MOSI=1
     lda #spi.SPI_NO_DEVICE | spi.MOSI_MASK
@@ -33,11 +41,8 @@ init: {
     dex
     bne !-
 
-    jsr wait
-    rts
-}
-
-wait: {
+    // Waste a few cycles letting the SDC get ready
+    // TODO: prettier delay routine somewhere
     phy()
 
     ldy #0
@@ -46,9 +51,10 @@ wait: {
     bne !-
 
     ply()
-    rts
 
+    rts
 }
+
 .macro CARD_noArgument() {
     lda #0
     SPI_writeAccumulator()
@@ -71,6 +77,9 @@ wait: {
     CARD_byte($ff)
 }
 
+//
+// Initialize card reader
+//
 sendCommand0: {
     lda #<command0
     sta SPI_DATA_PTR
@@ -80,8 +89,11 @@ sendCommand0: {
 }
 
 //
-// SPI_DATA_PTR contains 5 byte sequence
-// SPI_COUNT will be modified
+// Send a command using 6 byte sequence stored at the
+// address pointed to by SPI_DATA_PTR
+//
+// The value SPI_COUNT will be modified
+//
 sendCommand: {
     SPI_setupIndexFromDevice(CARD_DEVICE)
     stx SPI_PORT
@@ -124,11 +136,61 @@ sendCommand: {
     rts
 }
 
+// Read boot sector of disk
+readBlock0: {
+    lda #<command17
+    sta SPI_DATA_PTR
+    lda #>command17
+    sta SPI_DATA_PTR+1
+    jsr sendCommand
+    beq !+
+    // Initialization error, cannot read
+    rts
+!:
+    SPI_setupIndexFromDevice(CARD_DEVICE)
+    stx SPI_PORT
+
+    lda #CARD_RETRY_COUNT
+    sta SPI_COUNT
+!:
+    jsr spi.readByteSendFF
+
+    cmp #READ_DATA_TOKEN
+    beq !+
+    cmp #$20
+    bcs !-
+    // Data token error
+    rts
+!:
+    // Begin data transfer
+    lda #<CARD_BUFFER
+    sta SPI_DATA_PTR
+    lda #>CARD_BUFFER
+    sta SPI_DATA_PTR+1
+
+    SPI_setupIndexFromDevice(CARD_DEVICE)
+
+    .for (var i = 0; i < 2; i++) {
+        stz(SPI_COUNT) // 256 bytes
+        jsr spi.readBytesSendFF
+    }
+
+    SPI_setupIndexFromDevice(CARD_DEVICE)
+    jsr spi.readBytesSendFF // Read CRC
+
+    rts
+}
+
 // Reset SDC
 command0:
 .byte CMD0, $00, $00, $00, $00, $95
+
 // Check version
 command8:
 .byte CMD8, $00, $00, $01, $AA, $87
+
+// Read single block
+command17:
+.byte CMD17, $00, $00, $00, $00, $00
 
 }

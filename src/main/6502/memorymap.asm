@@ -1,14 +1,16 @@
 #importonce
 
-.const SPI_MOSI_L = $0200
-.const SPI_MOSI_H = $0201
-.const SPI_COUNT = $0202
-.const CONSOLE_POSITION = $0203 // 2 bytes
-.const CONSOLE_SCROLL = $0205 // 2 bytes
-.const CONSOLE_ID = $0207 // 1 byte
-.const CARD_R1 = $0208 // 1 byte
-
 .const SPI_DATA_PTR = $01
+
+
+.const SPI_MOSI_L =         $0200
+.const SPI_MOSI_H =         $0201
+.const SPI_COUNT =          $0202
+.const CONSOLE_POSITION =   $0203 // 2 bytes
+.const CONSOLE_SCROLL =     $0205 // 2 bytes
+.const CONSOLE_ID =         $0207 // 1 byte
+.const CARD_R1 =            $0208 // 1 byte
+.const CARD_BUFFER =        $0300 // 512 bytes
 
 .const VIA1_DDRA = $a003
 .const VIA1_DDRB = $a002

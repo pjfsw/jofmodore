@@ -153,16 +153,10 @@ writeByteManyTimes: {
 
 }
 
-readByteSendFF:
-    stx SPI_PORT
-    // Transitions into readbyte
-
-// Read a byte from SPI
-// Device must be previously selected
-// Returns byte in A
-readByte: {
+.macro SPI_readByteIntoA() {
     lda #0
-   .for (var i = 0;i < 8; i++) {
+
+    .for (var i = 0;i < 8; i++) {
         clc
         bit SPI_PORT
         bpl !+
@@ -172,7 +166,51 @@ readByte: {
         inc SPI_PORT
         dec SPI_PORT
     }
+}
 
+//
+// Read a byte from SPI with MOSI=1
+// X should be initialized with MOSI=1 and the proper selected device
+// Y is not guaranteed to be preserved
+//
+readByteSendFF:
+    stx SPI_PORT
+    // Transitions into readByte
+
+// Read a byte from SPI
+// Device must be previously selected
+// Returns byte in A
+// Y is not guaranteed to be preserved
+readByte: {
+    SPI_readByteIntoA()
+
+    rts
+}
+
+//
+// Read several bytes from SPI with MOSI=1
+// X should be initialized with MOSI=1 and the proper selected device
+//
+// 16-bit Address to bytes in SPI_DATA_PTR
+// Number of bytes to write in SPI_COUNT
+//
+// The contents of SPI_DATA_PTR are updated during read, so
+// subsequent calls can be made to perform >256 byte reads
+readBytesSendFF: {
+    stx SPI_PORT
+!:
+    SPI_readByteIntoA()
+    stazp(SPI_DATA_PTR)
+    dec SPI_COUNT
+    beq !+
+    {
+        inc SPI_DATA_PTR
+        bne !+
+        inc SPI_DATA_PTR+1
+    !:
+    }
+    jmp !-
+!:
     rts
 }
 
