@@ -208,10 +208,10 @@ readBootsector: {
     SPI_setupIndexFromDevice(CARD_DEVICE)
     jsr spi.readBytesSendFF
 
-    ldy #0
+    ldx #0
 !:  // Just throw away the next 256 bytes coz we're out of RAM :(
     jsr spi.readByteSendFF
-    dey
+    dex
     bne !-
 
     jsr spi.readByteSendFF // Read CRC

@@ -155,17 +155,15 @@ writeByteManyTimes: {
 
 .macro SPI_readByteIntoA() {
     lda #0
+    ldy #$80
 
     .for (var i = 0;i < 8; i++) {
-        clc
-        bit SPI_PORT
-        bpl !+
-        sec
-    !:
+        cpy SPI_PORT
         rol
         inc SPI_PORT
         dec SPI_PORT
     }
+    eor #$ff
 }
 
 //
