@@ -21,7 +21,6 @@
 }
 
 .namespace  console {
-    * = * "Gameduino"
 
 init: {
     gd_select()

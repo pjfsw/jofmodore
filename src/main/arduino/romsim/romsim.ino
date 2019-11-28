@@ -18,9 +18,9 @@
 #define DIR_INPUT 0
 
 
-#define ROM_START 0xf000
-#define ROM_SIZE 0x1000
-#define RAM_SIZE 0x400
+#define ROM_START 0xf100
+#define ROM_SIZE 0xf00
+#define RAM_SIZE 0x500
 
 #define IO_START 0xA000
 #define IO_END 0xA00F

@@ -1,11 +1,20 @@
-    * = $f700 "Implementation"
+    * = $f800 "Libraries"
 
+chunk_start:
+chunk_spi:
 #import "spi.asm"
-#import "card.asm"
+    .print "SPI Chunk:       " + (*-chunk_spi)
+chunk_cartridge:
+#import "cartridge.asm"
+    .print "Cartridge Chunk: " + (*-chunk_cartridge)
+chunk_gameduino:
 #import "gd.asm"
+    .print "Gameduino Chunk: " + (*-chunk_gameduino)
+chunk_sound:
 #import "sound.asm"
-
-    * = * "BIOS"
+    .print "Sound Chunk:     " + (*-chunk_sound)
+    .print "Libraries TOTAL: " + (*-chunk_start)
+chunk_bios:
 
 .macro lsr(n) {
     .for(var i = 0;i < n;i++) {
@@ -14,66 +23,36 @@
 }
 start:
     jsr spi.init
-    jsr card.init
-
     jsr console.init
 
-    ldx #<msg
-    ldy #>msg
+    ldx #<msgWelcome
+    ldy #>msgWelcome
     jsr console.println
 
     jsr printGraphicsId
 
-    ldx #<cardInitMsg
-    ldy #>cardInitMsg
+    ldx #<msgWrite
+    ldy #>msgWrite
     jsr console.println
 
-    jsr card.sendCommand0
-    jsr printCardStatus
-    jsr card.sendCommand8 // Send next command in list and print status
-    jsr printCardStatus
-!:
-    jsr beep
+    jsr cartridge.write256BytesToRAM
 
-    jsr card.sendAppCommand41
-    jsr printCardStatus
-    lda CARD_R1
-    bne !-
+    ldx #<msgRead
+    ldy #>msgRead
+    jsr console.println
 
+    jsr cartridge.readBootSector
     ldx #0
-    lda #'X'
-!:
-    sta CARD_BUFFER,x
-    dex
-    bne !-
+    ldy #3
+    jsr console.println
 
+    ldx #<msgDone
+    ldy #>msgDone
+    jsr console.println
 
-    jsr card.readBootsector
-    jsr printCardStatus
-    lda CARD_R1
-    cmp #$FE
-    bne !+
-
-    jsr printBootInfo
 
 !:
     jmp !-
-
-printBootInfo:
-    .for (var i = 0; i < 5; i++) {
-        ldx #bootInfoDataEnd-bootInfoData
-    !:
-        lda CARD_BUFFER+i*(bootInfoDataEnd-bootInfoData),x
-        and #%11011111
-        ora #1
-        sta bootInfoData,x
-        dex
-        bne !-
-        ldx #<bootInfo
-        ldy #>bootInfo
-        jsr console.println
-    }
-    rts
 
 printGraphicsId: {
     lda CONSOLE_ID
@@ -88,25 +67,6 @@ printGraphicsId: {
     sta graphicsIdLow
     ldx #<graphicsMsg
     ldy #>graphicsMsg
-    jmp console.println
-}
-
-printCardStatus: {
-    .for (var i = 0; i < 2; i++) {
-        lda CARD_CMD + i
-        lsr(4)
-        tay
-        lda hexDigit,y
-        sta cardStatus + i * 2
-        lda CARD_CMD + i
-        and #$0f
-        tay
-        lda hexDigit,y
-        sta cardStatus + i * 2 + 1
-    }
-
-    ldx #<cardStatusMsg
-    ldy #>cardStatusMsg
     jmp console.println
 }
 
@@ -140,24 +100,19 @@ sleep:
 
 beeps:
     .byte 45,90
-msg:
-    .text "WELCOME TO JOFMODORE V0.01"
+msgWelcome:
+    .text "JOFMODORE V0.01 INIT"
     .byte 0
-cardInitMsg:
-    .text "INITIALIZING SDC"
+msgWrite:
+    .text "WRITING"
+    .byte 0
+msgRead:
+    .text "READING"
+    .byte 0
+msgDone:
+    .text "DONE"
     .byte 0
 
-bootInfo:
-bootInfoData:
-    .fill 50,' '
-bootInfoDataEnd:
-    .byte 0,0
-
-cardStatusMsg:
-    .text "SDC STATUS: "
-cardStatus:
-    .text "    "
-    .byte 0
 graphicsMsg:
     .text "GFX ID: "
 graphicsIdHigh:
@@ -167,6 +122,9 @@ graphicsIdLow:
     .byte 0
 hexDigit:
     .byte '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+
+.print "BIOS Chunk:      " + (* - chunk_bios)
+.print "TOTAL BYTES:     " + (* - chunk_start)
 
     * = $fffc "6502 vectors"
     .byte <start, >start

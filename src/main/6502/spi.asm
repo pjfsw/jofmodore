@@ -8,7 +8,6 @@
 #import "65c02.asm"
 
 .namespace spi {
-    * = * "SPI"
 
 // PA7:     MISO Read bit
 // PA6:     MOSI Write bit
@@ -18,6 +17,7 @@
     .label SPI_NO_DEVICE = %00111110
     .label SPI_DEVICE1 =   %00111100
     .label SPI_DEVICE2 =   %00111010
+    .label SPI_DEVICE3 =   %00110110
     .label MOSI_MASK =     %01000000
 
 init: {
@@ -37,14 +37,6 @@ selectDevice: {
     sta SPI_MOSI_H
     rts
 }
-
-
-// Load index registers with MOSI values for device
-.macro @SPI_setupIndexFromDevice(device) {
-    ldy #device
-    ldx #device | MOSI_MASK
-}
-
 
 // A = Value to be written
 // Y = MOSI=0 mask
@@ -155,25 +147,16 @@ writeByteManyTimes: {
 
 .macro SPI_readByteIntoA() {
     lda #0
-    ldy #$80
+    ldx #$80
 
     .for (var i = 0;i < 8; i++) {
-        cpy SPI_PORT
+        cpx SPI_PORT
         rol
         inc SPI_PORT
         dec SPI_PORT
     }
     eor #$ff
 }
-
-//
-// Read a byte from SPI with MOSI=1
-// X should be initialized with MOSI=1 and the proper selected device
-// Y is not guaranteed to be preserved
-//
-readByteSendFF:
-    stx SPI_PORT
-    // Transitions into readByte
 
 // Read a byte from SPI
 // Device must be previously selected
@@ -185,35 +168,23 @@ readByte: {
     rts
 }
 
+// Perform a 256 byte read into RAM buffer
+// Setup SPI port before call with whatever parameters needed i.e.
+// the proper CS and the value of MOSI
 //
-// Read several bytes from SPI with MOSI=1
-// X should be initialized with MOSI=1 and the proper selected device
-//
-// 16-bit Address to bytes in SPI_DATA_PTR
-// Number of bytes to write in SPI_COUNT
-//
-// The contents of SPI_DATA_PTR are updated during read, so
-// subsequent calls can be made to perform >256 byte reads
-readBytesSendFF: {
-    stx SPI_PORT
+// Target address in SPI_DATA_PTR
+readMemoryPage: {
+    ldy #0
 !:
     SPI_readByteIntoA()
-    stazp(SPI_DATA_PTR)
-    dec SPI_COUNT
-    beq !+
-    {
-        inc SPI_DATA_PTR
-        bne !+
-        inc SPI_DATA_PTR+1
-    !:
-    }
-    jmp !-
-!:
+    sta (SPI_DATA_PTR),y
+    iny
+    bne !-
     rts
 }
 
 deviceSelectTable:
-    .byte SPI_NO_DEVICE, SPI_DEVICE1, SPI_DEVICE2
+    .byte SPI_NO_DEVICE, SPI_DEVICE1, SPI_DEVICE2, SPI_DEVICE3
 
 
 } // namespac
