@@ -22,6 +22,7 @@ chunk_bios:
     }
 }
 start:
+    nop
     jsr spi.init
     jsr console.init
 
@@ -43,7 +44,7 @@ start:
 
     jsr cartridge.readBootSector
     ldx #0
-    ldy #3
+    ldy #4
     jsr console.println
 
     ldx #<msgDone

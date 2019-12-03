@@ -9,14 +9,15 @@
 .const CONSOLE_SCROLL =     $0205 // 2 bytes
 .const CONSOLE_ID =         $0207 // 1 byte
 
-.const VIA1_DDRA = $a003
-.const VIA1_DDRB = $a002
-.const VIA1_PORTA = $a001
-.const VIA1_PORTB = $a000
+.const VIA1_BASE = $D000
+.const VIA1_DDRA = VIA1_BASE + 3
+.const VIA1_DDRB = VIA1_BASE + 2
+.const VIA1_PORTA = VIA1_BASE + 1
+.const VIA1_PORTB = VIA1_BASE
 
-.const VIA1_T1L = $a004
-.const VIA1_T1H = $a005
-.const VIA1_ACR = $a00b
+.const VIA1_T1L = VIA1_BASE + 4
+.const VIA1_T1H = VIA1_BASE + 5
+.const VIA1_ACR = VIA1_BASE + 11
 
 .const SPI_DDR = VIA1_DDRA
 .const SPI_PORT = VIA1_PORTA

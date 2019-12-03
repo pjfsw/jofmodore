@@ -22,8 +22,8 @@
 #define ROM_SIZE 0xf00
 #define RAM_SIZE 0x500
 
-#define IO_START 0xA000
-#define IO_END 0xA00F
+#define IO_START 0xD000
+#define IO_END 0xD00F
 
 #define RESET_LENGTH 6
 
@@ -94,7 +94,7 @@ void resetClockSequence() {
 void normalClockSequence() {
   unsigned int addr = ADDR_L | (ADDR_H << 8);
 
-  if (addr >= 0xa000 && addr <= 0xafff) {
+  if (addr >= IO_START && addr <= IO_END) {
     digitalWrite(IO_CS, 1);
     digitalWrite(CLK, 1);
     digitalWrite(DEBUGPIN, 1);

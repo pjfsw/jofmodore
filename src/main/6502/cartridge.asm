@@ -39,7 +39,7 @@ readBootSector:
         lda #>CART_LOAD_TO_ADDRESS
         sta SPI_DATA_PTR+1
 
-        // Read 256 bytes of data
+        // Read 512 bytes of data
         jsr spi.readMemoryPage
         inc SPI_DATA_PTR+1
         jsr spi.readMemoryPage
@@ -56,10 +56,10 @@ write256BytesToRAM: {
         lda #CART_WRITE
         jsr spi.writeByte
 
-        jsr setCartBootAddress
+        jsr setCartAddressZero
 
         // Write soem data
-        ldx #2
+        ldx #14
     !:
         phx()
         lda #<testdata
@@ -70,6 +70,7 @@ write256BytesToRAM: {
         sta SPI_COUNT
         jsr spi.writeBytes
         plx()
+        inc testdata
         dex
         bne !-
         lda #0
@@ -80,10 +81,21 @@ write256BytesToRAM: {
 }
 
 // Set 24-bit adress = 0x000000
-setCartBootAddress: {
+setCartAddressZero: {
     lda #0
     jsr spi.writeByte
     lda #0
+    jsr spi.writeByte
+    lda #0
+    jsr spi.writeByte
+    rts
+}
+
+// Set 24-bit adress = 0x000000
+setCartBootAddress: {
+    lda #0
+    jsr spi.writeByte
+    lda #2
     jsr spi.writeByte
     lda #0
     jsr spi.writeByte
@@ -102,6 +114,6 @@ setSequentialMode: {
 }
 
 testdata:
-    .text "THIS IS STORED IN RAM AND OCCUPIES A LOT OF SPACE"
+    .text "AHIS VERY LONG MESSAGE IS EXACTLY SIXTY FOUR BYTES WORTH OF TEXT"
 testdataend:
 }
