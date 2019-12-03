@@ -10,10 +10,6 @@ chunk_cartridge:
 chunk_gameduino:
 #import "gd.asm"
     .print "Gameduino Chunk: " + (*-chunk_gameduino)
-chunk_sound:
-#import "sound.asm"
-    .print "Sound Chunk:     " + (*-chunk_sound)
-    .print "Libraries TOTAL: " + (*-chunk_start)
 chunk_bios:
 
 .macro lsr(n) {
@@ -21,7 +17,42 @@ chunk_bios:
         lsr
     }
 }
+
+// The following code must NOT use the stack or RAM
+// because it should be possible to execute before
+// any RAM is installed, for testing purposes
+
+.macro ROM_Only_Sequence() {
+    // Init port B, bit 7 is sound output, bit 6 is cartridge ready bit
+    lda #$80
+    sta VIA1_DDRB
+
+    // Beep buzzer
+    lda #50
+    sta VIA1_T1L
+    stz(VIA1_T1H)
+    lda #$c0
+    sta VIA1_ACR
+
+    // Delay a bit
+    ldx #0
+!:
+    nop
+    dex
+    bne !-
+
+    // Stop beeping
+    stz(VIA1_ACR)
+
+    // Wait for cartridge ready bit set
+!:
+    bit VIA1_PORTB
+    bvc !-
+}
+
 start:
+    ROM_Only_Sequence()
+
     jsr spi.init
     jsr console.init
 
@@ -68,36 +99,6 @@ storeSoftware: {
     jmp cartridge.write512BytesToRAM
 }
 
-beep: {
-    ldy #1
-!:  {
-        lda beeps,y
-        jsr sound.beep
-
-        ldx #20
-    !:
-        dex
-        bne !-
-    }
-    dey
-    bpl !-
-    jmp sound.quiet
-}
-
-sleep:
-    ldy #31
-!:  {
-        ldx #255
-    !:
-        dex
-        bne !-
-    }
-    dey
-    bne !-
-    rts
-
-beeps:
-    .byte 45,90
 msgWelcome:
     .text "JOFMODORE V0.01"
     .byte 0
