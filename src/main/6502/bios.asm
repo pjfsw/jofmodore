@@ -28,7 +28,7 @@ chunk_bios:
     sta VIA1_DDRB
 
     // Beep buzzer
-    lda #50
+    lda #255
     sta VIA1_T1L
     stz(VIA1_T1H)
     lda #$c0
