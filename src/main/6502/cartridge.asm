@@ -2,6 +2,7 @@
 
 #import "spi.asm"
 
+    .label CART_SELECT_ID = 3
     .label CART_LOAD_TO_ADDRESS = $0300
 
     .label CART_READ = $03
@@ -12,7 +13,7 @@
     .label CART_SEQUENTIAL_MODE = %01000000
 
 .macro cart_select() {
-    ldx #3
+    ldx #CART_SELECT_ID
     jsr spi.selectDevice
 }
 
