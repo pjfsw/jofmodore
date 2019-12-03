@@ -39,16 +39,16 @@ readBootSector:
         stz(SPI_DATA_PTR)
         lda #>CART_LOAD_TO_ADDRESS
         sta SPI_DATA_PTR+1
-
-        // Read 512 bytes of data
+        // Read 256 bytes of data
         jsr spi.readMemoryPage
+        // Read 256 bytes of data
         inc SPI_DATA_PTR+1
         jsr spi.readMemoryPage
     } cart_deselect()
 
     rts
 
-write256BytesToRAM: {
+write512BytesToRAM: {
     jsr setSequentialMode
 
     cart_select()
@@ -57,17 +57,17 @@ write256BytesToRAM: {
         lda #CART_WRITE
         jsr spi.writeByte
 
-        jsr setCartAddressZero
+        jsr setCartBootAddress
 
-        // Write soem data
-        ldx #14
+        // Write 512 bytes of data
+        ldx #2
     !:
         phx()
         lda #<testdata
         sta SPI_DATA_PTR
         lda #>testdata
         sta SPI_DATA_PTR+1
-        lda #testdataend-testdata
+        lda #0
         sta SPI_COUNT
         jsr spi.writeBytes
         plx()
@@ -82,21 +82,10 @@ write256BytesToRAM: {
 }
 
 // Set 24-bit adress = 0x000000
-setCartAddressZero: {
-    lda #0
-    jsr spi.writeByte
-    lda #0
-    jsr spi.writeByte
-    lda #0
-    jsr spi.writeByte
-    rts
-}
-
-// Set 24-bit adress = 0x000000
 setCartBootAddress: {
     lda #0
     jsr spi.writeByte
-    lda #2
+    lda #0
     jsr spi.writeByte
     lda #0
     jsr spi.writeByte
@@ -115,6 +104,7 @@ setSequentialMode: {
 }
 
 testdata:
-    .text "AHIS VERY LONG MESSAGE IS EXACTLY SIXTY FOUR BYTES WORTH OF TEXT"
+    #import "loadedprg.asm"
+
 testdataend:
 }

@@ -22,40 +22,29 @@ chunk_bios:
     }
 }
 start:
-    nop
     jsr spi.init
     jsr console.init
 
-    ldx #<msgWelcome
-    ldy #>msgWelcome
-    jsr console.println
-
-    jsr printGraphicsId
-
-    ldx #<msgWrite
-    ldy #>msgWrite
-    jsr console.println
-
-    jsr cartridge.write256BytesToRAM
+    jsr printBootScreen
+    jsr storeSoftware
 
     ldx #<msgRead
     ldy #>msgRead
     jsr console.println
 
     jsr cartridge.readBootSector
-    ldx #0
-    ldy #4
-    jsr console.println
 
     ldx #<msgDone
     ldy #>msgDone
     jsr console.println
 
+    jmp $0300
 
-!:
-    jmp !-
+printBootScreen: {
+    ldx #<msgWelcome
+    ldy #>msgWelcome
+    jsr console.println
 
-printGraphicsId: {
     lda CONSOLE_ID
     lsr(4)
     tay
@@ -69,6 +58,14 @@ printGraphicsId: {
     ldx #<graphicsMsg
     ldy #>graphicsMsg
     jmp console.println
+}
+
+storeSoftware: {
+    ldx #<msgWrite
+    ldy #>msgWrite
+    jsr console.println
+
+    jmp cartridge.write512BytesToRAM
 }
 
 beep: {
@@ -102,16 +99,16 @@ sleep:
 beeps:
     .byte 45,90
 msgWelcome:
-    .text "JOFMODORE V0.01 INIT"
+    .text "JOFMODORE V0.01"
     .byte 0
 msgWrite:
-    .text "WRITING"
+    .text "WRITE"
     .byte 0
 msgRead:
-    .text "READING"
+    .text "LOAD"
     .byte 0
 msgDone:
-    .text "DONE"
+    .text "OK"
     .byte 0
 
 graphicsMsg:
