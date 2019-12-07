@@ -48,6 +48,21 @@ will then jump to $0300.
 
 ## SPI Configuration
 
+### Writing of SPI ROM (device 3):
+
+TBD
+### Wiring of SPI RAM (device 3):
+
+`MISO`, `MOSI` and `CLK` are connected from 6522 to RAM via an 74HC245 octal tranceiver.
+
+Octal tranceiver `/OE` (output enable) is connected to the output of an 74HC32 OR gate.
+One of the inputs is the 6522 `/CS` pin, the other one is an Arduino master control pin. This way,
+the Arduino can take control over the SPI port by setting its pin to 1. If the Arduino is not connected,
+the input should be set to 0, effectively disabling the purpose of the OR gate.
+
+Another OR gate is used to OR the `/CS` pins of the Arduino and the 6522, and the output is connected
+to the RAM `/CS`.
+
 ## Convert 6502 PRG binaries to Arduino loader format and upload it to Arduino Mega
 `src/main/python/readprg.py target/bios.prg | src/main/python/programmer.py`
 
