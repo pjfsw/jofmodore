@@ -39,11 +39,17 @@ readBootSector:
         stz(SPI_DATA_PTR)
         lda #>CART_LOAD_TO_ADDRESS
         sta SPI_DATA_PTR+1
+
+        // Ready 4 KB data into RAM
+        ldx #4096/256
+!:
+        phx()
         // Read 256 bytes of data
         jsr spi.readMemoryPage
-        // Read 256 bytes of data
         inc SPI_DATA_PTR+1
-        jsr spi.readMemoryPage
+        plx()
+        dex
+        bne !-
     } cart_deselect()
 
     rts

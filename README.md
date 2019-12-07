@@ -46,6 +46,8 @@ Computer will boot up and wait for cartridge load ready to go high, then load
 the first XX KB of data from cartridge address 0 into address $0300 in RAM. Execution
 will then jump to $0300.
 
+## SPI Configuration
+
 ## Convert 6502 PRG binaries to Arduino loader format and upload it to Arduino Mega
 `src/main/python/readprg.py target/bios.prg | src/main/python/programmer.py`
 
