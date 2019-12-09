@@ -9,20 +9,29 @@ def sendCmd(cmd):
     ser.flush()
     return ser.readline().rstrip()
 
+def init():
+    ser.write("hello\n");
+    ser.flush();
+    ready = False
+    while not ready:
+        inp = ser.readline().rstrip()
+        print inp
+        if inp == 'ready':
+            ready = True
+
+    return
+
 port='/dev/tty.usbmodem411'
 #commands=["0", "w FFF8 0123456789ABCDEF","r FFFE","w 0000 1014", "r 0001","1"]
 
-ser = serial.Serial(port, 230400, timeout=3)
-print "Sleeping for 1 second"
-time.sleep(1)
-print "Command sequence start"
-print sendCmd("0")
+ser = serial.Serial(port, 230400, timeout=10)
+init()
 for command in fileinput.input():
-    print command
-    print sendCmd(command)
+    print "Writing '"+command.rstrip()+"'"
+    print sendCmd(command.rstrip())
 
 time.sleep(1)
-print sendCmd("1")
+print sendCmd("boot")
 ser.close()
 print "Finish"
 

@@ -67,6 +67,8 @@ to the RAM `/CS`.
 `src/main/python/readprg.py target/bios.prg | src/main/python/programmer.py`
 
 The Python code will eventually be moved into its own project.
+## Write 6502 PRG binaries to serial RAM or ROM
+`hexdump -v -s 2 target/bios.prg | src/main/python/programmer.py`
 
 ## Gameduino
 
