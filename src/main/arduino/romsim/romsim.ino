@@ -69,6 +69,12 @@ void setup() {
    rom[ROM_SIZE -5] = 0xff;   
    rom[ROM_SIZE- 4] = 0xef;
    rom[ROM_SIZE- 3] = 0xff;
+
+  Serial.println("F000 ROM loader.");
+  Serial.println("ready");
+  Serial.flush();
+
+   
 }
 
 void startTimer() {
@@ -213,11 +219,11 @@ void loop() {
       sprintf(textbuf, "%04X: Data must be an even length hex string", address);
       Serial.println(textbuf);
     }
-  } else if (command == '0') {
+  } else if (command == 'r') {
     resetTimer = 0;
     digitalWrite(RESET, 0);
     Serial.println("Reset triggered");
-  } else if (command == '1') {
+  } else if (command == 'b') {
     resetTimer = RESET_LENGTH;
     startTimer();
     Serial.println("Reset released");

@@ -26,12 +26,13 @@ port='/dev/tty.usbmodem411'
 
 ser = serial.Serial(port, 230400, timeout=10)
 init()
+print sendCmd("r")
 for command in fileinput.input():
     print "Writing '"+command.rstrip()+"'"
     print sendCmd(command.rstrip())
 
 time.sleep(1)
-print sendCmd("boot")
+print sendCmd("b")
 ser.close()
 print "Finish"
 

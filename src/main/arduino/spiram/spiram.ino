@@ -209,7 +209,7 @@ void readFromSerial() {
   if (2 == sscanf(textbuf, "a %lx", &tmpAddress)) {
     writeResult(writeSpiData());
     ramAddress = tmpAddress;
-  } else if (strncmp("boot", textbuf, strlen("boot")) == 0) {
+  } else if (strncmp("b", textbuf, strlen("b")) == 0) {
     Result result = writeSpiData();
     if (result == OK) {
       boot();
@@ -266,7 +266,6 @@ void setup() {
   Serial.begin(230400);
   Serial.println("SPI RAM/ROM loader.");
   Serial.println("ready");
-  Serial.flush();
 }
 
 void loop() {
