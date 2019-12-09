@@ -1,18 +1,25 @@
 #importonce
-
-.pseudopc $0300 {
+#import "memorymap.asm"
+.pseudopc $0301 {
 
 loadedprg:
     ldx #<loadedMsg
     ldy #>loadedMsg
-    jsr console.println
+    jsr BIOS_Console_println
+
+    ldx #<moreMsg
+    ldy #>moreMsg
+    jsr BIOS_Console_println
+
 !:
     jmp !-
 
 loadedMsg:
     .text "THIS IS LOADED SOFTWARE!"
     .byte 0
-
-.print "Size of loaded software: " + (*-loadedprg)
+    .fill 256,0
+moreMsg:
+    .text "SOME 256 BYTES LATER!"
+    .byte 0
 }
 

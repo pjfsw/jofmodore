@@ -1,4 +1,4 @@
-    * = $f800 "Libraries"
+    * = $f800 "Implementation"
 
 chunk_start:
 chunk_spi:
@@ -57,8 +57,9 @@ start:
     jsr console.init
 
     jsr printBootScreen
+#if WRITE_BOOT_CARTRIDGE
     jsr storeSoftware
-
+#endif
     ldx #<msgRead
     ldy #>msgRead
     jsr console.println
@@ -69,7 +70,7 @@ start:
     ldy #>msgDone
     jsr console.println
 
-    jmp $0300
+    jmp $0301
 
 printBootScreen: {
     ldx #<msgWelcome
@@ -91,6 +92,10 @@ printBootScreen: {
     jmp console.println
 }
 
+ISR:
+    rti
+
+#if WRITE_BOOT_CARTRIDGE
 storeSoftware: {
     ldx #<msgWrite
     ldy #>msgWrite
@@ -99,12 +104,16 @@ storeSoftware: {
     jmp cartridge.write512BytesToRAM
 }
 
-msgWelcome:
-    .text "JOFMODORE V0.01"
-    .byte 0
 msgWrite:
     .text "WRITE"
     .byte 0
+
+#endif
+
+msgWelcome:
+    .text "JOFMODORE V0.01"
+    .byte 0
+
 msgRead:
     .text "LOAD"
     .byte 0
@@ -125,6 +134,8 @@ hexDigit:
 .print "BIOS Chunk:      " + (* - chunk_bios)
 .print "TOTAL BYTES:     " + (* - chunk_start)
 
-    * = $fffc "6502 vectors"
+#import "jumptableptr.asm"
+    * = $fffa "6502 vectors"
+    .byte <ISR, >ISR
     .byte <start, >start
-    .byte $00,$01
+    .byte <ISR, >ISR

@@ -79,8 +79,6 @@ writeBytes: {
 
     SPI_writeAccumulator()
 
-    dec SPI_COUNT
-    beq !+
     {
 
         inc SPI_DATA_PTR
@@ -88,6 +86,8 @@ writeBytes: {
         inc SPI_DATA_PTR+1
     !:
     }
+    dec SPI_COUNT
+    beq !+
     jmp !-
 !:
     rts

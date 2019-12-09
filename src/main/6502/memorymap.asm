@@ -1,5 +1,15 @@
 #importonce
 
+// BIOS Jumptable addresses
+.const BIOS_SPI_selectDevice        = $FFF7
+.const BIOS_SPI_writeByte           = $FFF4
+.const BIOS_SPI_writeBytes          = $FFF1
+.const BIOS_SPI_writeBytesUntilZero = $FFEE
+.const BIOS_SPI_writeByteManyTimes  = $FFEB
+.const BIOS_SPI_readByte            = $FFE8
+.const BIOS_SPI_readMemoryPage      = $FFE5
+.const BIOS_Console_println         = $FFE2
+
 .const SPI_DATA_PTR = $01
 
 .const SPI_MOSI_L =         $0200

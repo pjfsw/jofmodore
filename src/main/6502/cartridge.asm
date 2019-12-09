@@ -40,52 +40,25 @@ readBootSector:
         lda #>CART_LOAD_TO_ADDRESS
         sta SPI_DATA_PTR+1
 
-        // Ready 4 KB data into RAM
-        ldx #4096/256
-!:
-        phx()
         // Read 256 bytes of data
         jsr spi.readMemoryPage
-        inc SPI_DATA_PTR+1
-        plx()
-        dex
-        bne !-
+        // Number of pages to load at byte 0 in cartridge.
+        ldx CART_LOAD_TO_ADDRESS
+        beq !+
+        {
+        !:
+            // Read 256 bytes of data
+            inc SPI_DATA_PTR+1
+            phx()
+            jsr spi.readMemoryPage
+            plx()
+            dex
+            bne !-
+        }
+        !:
     } cart_deselect()
 
     rts
-
-write512BytesToRAM: {
-    jsr setSequentialMode
-
-    cart_select()
-    {
-        // Write command
-        lda #CART_WRITE
-        jsr spi.writeByte
-
-        jsr setCartBootAddress
-
-        // Write 512 bytes of data
-        ldx #2
-    !:
-        phx()
-        lda #<testdata
-        sta SPI_DATA_PTR
-        lda #>testdata
-        sta SPI_DATA_PTR+1
-        lda #0
-        sta SPI_COUNT
-        jsr spi.writeBytes
-        plx()
-        inc testdata
-        dex
-        bne !-
-        lda #0
-        jsr spi.writeByte
-    } cart_deselect()
-
-    rts
-}
 
 // Set 24-bit adress = 0x000000
 setCartBootAddress: {
@@ -109,8 +82,46 @@ setSequentialMode: {
     rts
 }
 
-testdata:
-    #import "loadedprg.asm"
+#if WRITE_BOOT_CARTRIDGE
 
+write512BytesToRAM: {
+    jsr setSequentialMode
+
+    cart_select()
+    {
+        // Write command
+        lda #CART_WRITE
+        jsr spi.writeByte
+
+        jsr setCartBootAddress
+
+        // Write 512 bytes of data
+        lda #<testdata
+        sta SPI_DATA_PTR
+        lda #>testdata
+        sta SPI_DATA_PTR+1
+        ldx #2
+    !:
+        lda #0
+        sta SPI_COUNT
+        phx()
+        jsr spi.writeBytes
+        plx()
+        dex
+        bne !-
+    } cart_deselect()
+
+    rts
+}
+
+.var testdatasize = floor((testdataend-testdata)/256)
+testdata:
+    .byte testdatasize
+    #import "loadedprg.asm"
 testdataend:
+    .print "Size of loaded software: " + (testdataend-testdata)
+    .print "Testdata size byte " + testdatasize
+
+#endif
+
 }

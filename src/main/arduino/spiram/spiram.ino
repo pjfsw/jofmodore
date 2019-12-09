@@ -258,10 +258,6 @@ void setup() {
   spiTransfer(RAM_WRMR);
   spiTransfer(SEQUENTIAL_MODE);
   spiEnd();
-  spiBegin();
-  spiTransfer(RAM_RDMR);
-  spiTransfer(SEQUENTIAL_MODE);
-  spiEnd();
 
   Serial.begin(230400);
   Serial.println("SPI RAM/ROM loader.");
