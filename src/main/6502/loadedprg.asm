@@ -1,6 +1,7 @@
 #importonce
 #import "memorymap.asm"
-.pseudopc $0301 {
+.pseudopc $0300 {
+    .byte (loadedPrgEnd-$300)/256
 
 loadedprg:
     ldx #<loadedMsg
@@ -21,5 +22,6 @@ loadedMsg:
 moreMsg:
     .text "SOME 256 BYTES LATER!"
     .byte 0
+loadedPrgEnd:
 }
 
