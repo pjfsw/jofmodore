@@ -36,6 +36,7 @@ char data[MAX_ROW_LENGTH+1];
 // ************************
 // BOOT LOADER WITH WRITE!!
 // ************************
+#if 0
 unsigned char rom[] = {
 
   /* 0x0000 */
@@ -176,9 +177,9 @@ unsigned char rom[] = {
   0xf9, 0x4c, 0x99, 0xf8, 0x4c, 0x1a, 0xf8, 0x4c, 0x0b, 0xf8, 0xfb, 0xfd, 0x93, 0xfd, 0xfb, 0xfd, 
   
 };
+#endif
 
-
-#if 0
+#if 1
 // ************************
 // BOOTLOADER WITHOUT WRITE
 // ************************
@@ -330,8 +331,6 @@ int led = 0;
 int resetTimer = RESET_LENGTH;
 
 void setup() {
-//  Serial.begin(230400);
-
   pinMode(RWB, INPUT);
   pinMode(RESET, OUTPUT);
   pinMode(CLK, OUTPUT);

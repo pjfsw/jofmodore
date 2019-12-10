@@ -27,6 +27,7 @@ unsigned char verify[DATA_SIZE];
 
 unsigned int dataPos = 0;
 unsigned long ramAddress = 0;
+bool canBoot = false;
 
 typedef enum {
   OK,
@@ -49,10 +50,10 @@ void spiEnd() {
 int spiTransfer(int value) {
   int input = 0;
   for (int i = 7; i >= 0; i--) {
+    input |=  digitalRead(MISO_PIN) << i;
     digitalWrite(MOSI_PIN, (value & (1 << i)) ? 1 : 0);
     digitalWrite(CLK_PIN,1);
     digitalWrite(CLK_PIN,0);
-    input |=  digitalRead(MISO_PIN) << i;
   }
   return input;
 }
@@ -86,7 +87,13 @@ Result verifySpiData(long addressInRam, int numberOfBytes) {
   Result result = OK;
   for (int i = 0; i < numberOfBytes; i++) {
     if (verify[i] != data[i]) {
+      char derpes[100];
+      int a = data[i];
+      int b = verify[i];
+      sprintf(derpes, " %02x != %02x ", a,b);
+      Serial.print(derpes);
       result = VERIFY_ERROR;
+      canBoot = false;
     }
   }
   return result;
@@ -212,8 +219,12 @@ void readFromSerial() {
   } else if (strncmp("b", textbuf, strlen("b")) == 0) {
     Result result = writeSpiData();
     if (result == OK) {
-      boot();
-      Serial.println("Booting");
+      if (canBoot) {
+        boot();
+        Serial.println("Booting");
+      } else {
+        Serial.println("Cannot boot due to previous errors");
+      }
     } else {
       writeResult(result); 
     }
@@ -245,6 +256,7 @@ void readFromSerial() {
 }
 
 void setup() {
+  pinMode(MISO_PIN, INPUT);
   pinMode(CSB_PIN, OUTPUT);
   digitalWrite(CSB_PIN, 1);
   pinMode(RESETB_PIN, OUTPUT);
@@ -262,6 +274,7 @@ void setup() {
   Serial.begin(230400);
   Serial.println("SPI RAM/ROM loader.");
   Serial.println("ready");
+  canBoot = true;
 }
 
 void loop() {
