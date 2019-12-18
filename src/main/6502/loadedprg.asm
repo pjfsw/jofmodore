@@ -4,6 +4,9 @@
     .byte (loadedPrgEnd-$300)/256
 
 loadedprg:
+    jmp prgStart
+    rti             // In case of ISR
+prgStart:
     ldx #<loadedMsg
     ldy #>loadedMsg
     jsr BIOS_Console_println

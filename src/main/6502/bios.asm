@@ -51,6 +51,7 @@ chunk_bios:
 }
 
 start:
+    sei
     ROM_Only_Sequence()
 
     jsr spi.init
@@ -138,4 +139,4 @@ hexDigit:
     * = $fffa "6502 vectors"
     .byte <ISR, >ISR
     .byte <start, >start
-    .byte <ISR, >ISR
+    .byte <IRQ_SR, >IRQ_SR

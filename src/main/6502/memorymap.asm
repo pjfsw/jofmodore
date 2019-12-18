@@ -19,6 +19,8 @@
 .const CONSOLE_SCROLL =     $0205 // 2 bytes
 .const CONSOLE_ID =         $0207 // 1 byte
 
+.const IRQ_SR =             $0304
+
 .const VIA1_BASE = $D000
 .const VIA1_DDRA = VIA1_BASE + 3
 .const VIA1_DDRB = VIA1_BASE + 2
