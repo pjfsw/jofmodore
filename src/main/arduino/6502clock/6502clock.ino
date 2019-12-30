@@ -5,14 +5,21 @@
 #define RESET 6
 #define CLOCK 9
 
-void cycle(long speed) {
-  digitalWrite(CLOCK, 0);
-  delayMicroseconds(speed);
-  digitalWrite(CLOCK, 1);
-  delayMicroseconds(speed);
+void cycle(unsigned long speed) {
+  if (speed < 1000) {
+    digitalWrite(CLOCK, 0);
+    delayMicroseconds(speed);
+    digitalWrite(CLOCK, 1);
+    delayMicroseconds(speed);
+  } else {
+    digitalWrite(CLOCK, 0);
+    delay(speed/1000);
+    digitalWrite(CLOCK, 1);
+    delay(speed/1000);
+  }
 }
 
-void debug(long speed) {
+void debug(unsigned long speed) {
   for (int i = 0; i < 7; i++) {
     cycle(speed);
   }
@@ -38,9 +45,9 @@ void setup() {
   
   if (!digitalRead(FULL_SPEED_PIN)) {
     if (digitalRead(SPEED_PIN)) {
-      debug(50);
+      debug(10);
     } else {
-      debug(500000L);
+      debug(250000L);
     }
   } else {
     if (digitalRead(SPEED_PIN)) {

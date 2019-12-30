@@ -20,13 +20,24 @@ start:
     sta VIA1_DDRB
 
     // Beep buzzer
-    lda #255
-    sta VIA1_T1L
+    ldx #255
+    stx VIA1_T1L
     stz(VIA1_T1H)
     lda #$c0
     sta VIA1_ACR
 
-    jmp *
+!:
+    ldy #0
+    {
+    !:
+        dey
+        bne !-
+    }
+    dex
+    stx VIA1_T1L
+    jmp !-
+
+
 ISR:
     rti
 
