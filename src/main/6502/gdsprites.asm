@@ -3,7 +3,7 @@
 #import "gd_header.asm"
 #import "65c02.asm"
 
-.var img = LoadPicture("me2.png")
+.var img = LoadPicture("happy.png")
 
 .label vb = $ff
 .label SPRITECOUNT = 8
@@ -96,7 +96,7 @@
                 ldy i+y
                 lda sintable,y
                 jsr BIOS_SPI_writeByte
-                lda #srcImage << 1
+                lda #(SPRITECOUNT-i-1) << 1
                 jsr BIOS_SPI_writeByte
 
                 inc y+i
@@ -164,6 +164,13 @@ initSprite:
         sta SPI_DATA_PTR+1
         stz(SPI_COUNT)
         jsr BIOS_SPI_writeBytes
+        jsr BIOS_SPI_writeBytes
+        jsr BIOS_SPI_writeBytes
+        jsr BIOS_SPI_writeBytes
+        jsr BIOS_SPI_writeBytes
+        jsr BIOS_SPI_writeBytes
+        jsr BIOS_SPI_writeBytes
+        jsr BIOS_SPI_writeBytes
     } gd_deselect()
 
     gd_select()
@@ -209,19 +216,21 @@ initSprite:
     .align  $100
 
 sintable:
-    .fill 256, 100*sin(i*PI/128)+138
+    .fill 256, 100*sin(i*PI/64)+138
 
 costable:
     .fill 256, 100*cos(i*PI/128)+138
 
 spriteData:
-    .for (var y = 0; y < 16; y++) {
-        .for (var x = 0; x < 16; x++) {
-            .var pixel = img.getPixel(x,y)
-            .var r = pixel >> 16
-            .var g = (pixel >> 8) & 255
-            .var b = pixel & 255
-            .byte b
+    .for (var n = 0; n < 8; n++) {
+        .for (var y = 0; y < 16; y++) {
+            .for (var x = 0; x < 16; x++) {
+                .var pixel = img.getPixel(n*16+x,y)
+                .var r = pixel >> 16
+                .var g = (pixel >> 8) & 255
+                .var b = pixel & 255
+                .byte b
+            }
         }
     }
 
@@ -247,11 +256,11 @@ fadePos:
     .byte 0
 x:
     .for (var i = 0; i < SPRITECOUNT; i++) {
-        .byte i*255/SPRITECOUNT
+        .byte i*200/SPRITECOUNT
     }
 y:
     .for (var i = 0; i < SPRITECOUNT; i++) {
-        .byte i*255/SPRITECOUNT
+        .byte i*100/SPRITECOUNT
     }
 prgEnd:
 }
