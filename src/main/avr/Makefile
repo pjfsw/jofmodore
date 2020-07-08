@@ -1,6 +1,7 @@
-SRC=ramtest
+SRC=blink
 BOARD=atmega2560
 DUDEBOARD=m2560
+PORT=/dev/ttyACM0 
 
 CC=avr-g++
 ARDUINOBASE=/usr/share/arduino/hardware
@@ -22,7 +23,7 @@ $(OBJECTS):
 	$(CC) -c $(CPPFLAGS) $(LIBS)
 
 upload:
-	avrdude -C $(ARDUINOTOOLS)/avrdude.conf -c arduino -p $(DUDEBOARD) -b 115200 -U flags:w:$(SRC).ihex:i 
+	avrdude -v -C $(ARDUINOTOOLS)/avrdude.conf -b 115200 -c avrisp2 -p $(DUDEBOARD) -P $(PORT) -U flash:w:$(SRC).ihex:i 
 
 
 clean:
