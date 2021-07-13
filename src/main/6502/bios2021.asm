@@ -55,17 +55,20 @@ start:
     jmp START_ADDRESS
 
 readByte:
-    stx.z x
+    stx.z x             // +3
+    sty.z y             // +3
 
+    ldy #CLOCK          // +2
     ldx #$7F            // +2
-    .for (var i = 0; i < 8; i++) { // 18 cycles
-        inc SPI_PORT    // +6
+    .for (var i = 0; i < 8; i++) { // 14 cycles
+        sty SPI_PORT    // +4
         cpx SPI_PORT    // +4
         rol             // +2
-        dec SPI_PORT    // +6
+        stz SPI_PORT    // +4
     }
-    eor #$ff            // 2  = 148 cycles
-    ldx.z x
+    eor #$ff            // +2
+    ldy.z y             // +3
+    ldx.z x             // +3  = 130 cycles
     rts
 
 writeByte:
